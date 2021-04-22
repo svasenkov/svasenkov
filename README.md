@@ -5,7 +5,7 @@ Automation of QA Automation, https://www.linkedin.com/in/stanislav-vasenkov
 ### Projects: 
 [@qa_automation](https://t.me/qa_automation) - QA Automation community on Telegram
 
-https://qa.guru - Test Automation school, https://github.com/qa-guru
+https://qa.guru - QA Automation school, https://github.com/qa-guru
 
 https://testops.guru - TestOps school (in progress)
 
