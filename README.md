@@ -11,7 +11,7 @@ https://testops.guru - TestOps school (in progress)
 
 https://autotests.cloud - Test Automation Freelance network & Template generator, https://github.com/autotests-cloud
 
-https://github.com/qa-guru - allure-notifications to telegram / slack / email ...
+https://github.com/qa-guru/allure-notifications - allure-notifications to telegram / slack / email ...
 
 https://toxic.school - wat??
 
