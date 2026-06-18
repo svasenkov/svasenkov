@@ -5,15 +5,11 @@ Automation of QA Automation, https://www.linkedin.com/in/stanislav-vasenkov
 ### Projects: 
 [@qa_automation](https://t.me/qa_automation) - QA Automation community on Telegram
 
-https://qa.guru - QA Automation school, https://github.com/qa-guru
-
-https://autotests.ai - Test Automation ai-service for qa.guru students
-
-https://autotests.cloud - Test Automation Freelance network & Template generator, https://github.com/autotests-cloud
-
+[QA.GURU]([https://t.me/qa_automation](https://qa.guru)) - QA Automation school, [@qa_guru](https://t.me/qa_guru), [@qa_guru_chat](https://t.me/qa_guru_chat), https://github.com/qa-guru
 
 https://github.com/qa-guru/allure-notifications - allure-notifications to telegram / slack / email ...
 
+https://autotests.ai - Test Automation ai-service for qa.guru students
 <!--
 **svasenkov/svasenkov** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
