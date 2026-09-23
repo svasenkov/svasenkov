@@ -9,7 +9,7 @@
         aria-labelledby="descId"
       >
         <title id="titleId">Vasenkov Stanislav&#39;s GitHub Stats, Rank: A-</title>
-        <desc id="descId">Total Stars Earned: 29, Total Commits  : 7888, Total PRs: 244, Total Issues: 55, Contributed to (last year): 87</desc>
+        <desc id="descId">Total Stars Earned: 29, Total Commits  : 7875, Total PRs: 236, Total Issues: 55, Contributed to (last year): 87</desc>
         <style>
           .header {
             font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif;
@@ -73,7 +73,7 @@
         stroke-dashoffset: 251.32741228718345;
       }
       to {
-        stroke-dashoffset: 68.20295454710008;
+        stroke-dashoffset: 68.45091430807373;
       }
     }
   
@@ -188,7 +188,7 @@
         x="224.01"
         y="12.5"
         data-testid="prs"
-      >244</text>
+      >236</text>
     </g>
   </g><g transform="translate(0, 75)">
     <g class="stagger" style="animation-delay: 900ms" transform="translate(25, 0)">
