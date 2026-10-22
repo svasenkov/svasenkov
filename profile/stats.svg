@@ -9,7 +9,7 @@
         aria-labelledby="descId"
       >
         <title id="titleId">Vasenkov Stanislav&#39;s GitHub Stats, Rank: A-</title>
-        <desc id="descId">Total Stars Earned: 29, Total Commits  : 8413, Total PRs: 240, Total Issues: 55, Contributed to (last year): 99</desc>
+        <desc id="descId">Total Stars Earned: 29, Total Commits  : 8413, Total PRs: 240, Total Issues: 55, Contributed to (last year): 98</desc>
         <style>
           .header {
             font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif;
@@ -218,7 +218,7 @@
         x="224.01"
         y="12.5"
         data-testid="contribs"
-      >99</text>
+      >98</text>
     </g>
   </g>
     </svg>
