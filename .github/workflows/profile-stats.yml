@@ -27,14 +27,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_error: true
 
-      - name: Generate top languages card
-        uses: stats-organization/github-readme-stats-action@v2
+      - uses: actions/setup-node@v6
         with:
-          card: top-langs
-          options: username=svasenkov&layout=compact&langs_count=20&role=OWNER,ORGANIZATION_MEMBER&theme=transparent&hide_border=true
-          path: profile/top-langs.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+          node-version: 26
+
+      # Custom top-langs: stock query takes the 100 oldest repos (createdAt ASC,
+      # no orderBy), so org projects never enter the window. Own fetch keeps the
+      # most recently updated repos of allowlisted owners, same renderer.
+      - name: Generate top languages card
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts \
+            --prefix "$RUNNER_TEMP/grs-core" \
+            @stats-organization/github-readme-stats-core@2.2.0
+          GRS_CORE_DIR="$RUNNER_TEMP/grs-core" node scripts/top-langs.mjs
 
       - name: Generate activity graph
         uses: maurodesouza/github-readme-activity-graph-action@v1
