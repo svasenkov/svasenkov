@@ -69,13 +69,17 @@ const gql = async (cursor) => {
 };
 
 const langs = {};
+const keptByOwner = {};
 let kept = 0;
+let scanned = 0;
 let cursor = null;
 for (let page = 0; page < MAX_PAGES && kept < MAX_REPOS; page++) {
   const data = await gql(cursor);
+  scanned += data.nodes.length;
   for (const repo of data.nodes) {
     if (!repo || !OWNER_ALLOWLIST.has(repo.owner?.login)) continue;
     kept++;
+    keptByOwner[repo.owner.login] = (keptByOwner[repo.owner.login] ?? 0) + 1;
     for (const edge of repo.languages?.edges ?? []) {
       const cur = langs[edge.node.name];
       langs[edge.node.name] = {
@@ -90,7 +94,9 @@ for (let page = 0; page < MAX_PAGES && kept < MAX_REPOS; page++) {
   if (!data.pageInfo.hasNextPage) break;
   cursor = data.pageInfo.endCursor;
 }
-console.log(`repos kept: ${kept}, languages: ${Object.keys(langs).length}`);
+console.log(
+  `scanned: ${scanned}, repos kept: ${kept} ${JSON.stringify(keptByOwner)}, languages: ${Object.keys(langs).length}`,
+);
 
 const topLangs = Object.fromEntries(
   Object.entries(langs).sort(([, a], [, b]) => b.size - a.size),
