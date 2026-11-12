@@ -62,8 +62,8 @@ Test automation AI-service for QA.GURU students.
 ## 📊 GitHub
 
 <div align="center">
-  <img height="250" src="./profile/stats.svg" alt="GitHub stats" />
-  <img height="250" src="./profile/top-langs.svg" alt="Top languages" />
+  <img height="280" src="./profile/stats.svg" alt="GitHub stats" />
+  <img height="280" src="./profile/top-langs.svg" alt="Top languages" />
 </div>
 
 <div align="center">

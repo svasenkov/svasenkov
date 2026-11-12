@@ -12,10 +12,11 @@
 //
 // Here: for each owner below, take the most recently updated repos.
 
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+// Allowlist — student orgs like autotests-cloud are intentionally absent.
 const OWNERS = [
   { login: "svasenkov", type: "user", max: 100 },
   { login: "qa-guru", type: "org", max: 100 },
@@ -26,7 +27,7 @@ const MAX_PAGES_PER_OWNER = 5;
 const OUT_PATH = "profile/top-langs.svg";
 const CARD_OPTIONS = {
   layout: "compact",
-  langs_count: 20,
+  langs_count: 30,
   theme: "transparent",
   hide_border: true,
 };
@@ -121,6 +122,21 @@ const cardPath = path.resolve(
   coreDir,
   "node_modules/@stats-organization/github-readme-stats-core/build/cards/top-languages.js",
 );
+
+// The renderer clamps langs_count to MAXIMUM_LANGS_COUNT = 20. Raise the cap in
+// the installed package so langs_count=30 renders; without it we'd silently
+// get 20 rows. Pinned core, so the constant text is stable.
+const cardSrc = await readFile(cardPath, "utf8");
+const patchedSrc = cardSrc.replace(
+  "MAXIMUM_LANGS_COUNT = 20",
+  "MAXIMUM_LANGS_COUNT = 40",
+);
+if (patchedSrc === cardSrc) {
+  console.warn("MAXIMUM_LANGS_COUNT not found — output stays capped at 20");
+} else {
+  await writeFile(cardPath, patchedSrc);
+}
+
 const { renderTopLanguages } = await import(pathToFileURL(cardPath).href);
 const svg = renderTopLanguages(topLangs, CARD_OPTIONS);
 await writeFile(OUT_PATH, svg);
