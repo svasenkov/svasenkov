@@ -6,18 +6,23 @@
 // Why: the stock top-langs query is `repositories(first: 100)` with no
 // orderBy — GitHub returns the 100 OLDEST repos (createdAt ASC), so new org
 // projects (e.g. autotests-ai-multistack-app with Kotlin/C#/Rust/Swift) never
-// enter the window, and org-member repos flood it with student homework.
+// enter the window. And under GITHUB_TOKEN the ORGANIZATION_MEMBER
+// affiliation does not surface org repos at all — they must be queried per
+// organization directly (public org data is readable by any token).
 //
-// Here: most recently updated repos, keep only the owners below.
+// Here: for each owner below, take the most recently updated repos.
 
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const LOGIN = "svasenkov";
-const OWNER_ALLOWLIST = new Set(["svasenkov", "qa-guru", "autotests-ai"]);
-const MAX_REPOS = 100;
-const MAX_PAGES = 15;
+const OWNERS = [
+  { login: "svasenkov", type: "user", max: 100 },
+  { login: "qa-guru", type: "org", max: 100 },
+  { login: "autotests-ai", type: "org", max: 100 },
+];
+const PER_PAGE = 100;
+const MAX_PAGES_PER_OWNER = 5;
 const OUT_PATH = "profile/top-langs.svg";
 const CARD_OPTIONS = {
   layout: "compact",
@@ -32,27 +37,36 @@ if (!token) {
   process.exit(1);
 }
 
-const QUERY = `query ($cursor: String) {
-  user(login: "${LOGIN}") {
-    repositories(
-      ownerAffiliations: [OWNER, ORGANIZATION_MEMBER]
-      isFork: false
-      first: 100
-      after: $cursor
-      orderBy: { field: UPDATED_AT, direction: DESC }
-    ) {
+const REPO_FIELDS = `
       pageInfo { hasNextPage endCursor }
       nodes {
+        isFork
         owner { login }
         languages(first: 10, orderBy: { field: SIZE, direction: DESC }) {
           edges { size node { name color } }
         }
-      }
+      }`;
+
+const queryFor = ({ login, type }) =>
+  type === "user"
+    ? `query ($cursor: String) {
+  user(login: "${login}") {
+    repositories(ownerAffiliations: [OWNER], first: ${PER_PAGE}, after: $cursor,
+      orderBy: { field: UPDATED_AT, direction: DESC }) {
+      ${REPO_FIELDS}
+    }
+  }
+}`
+    : `query ($cursor: String) {
+  organization(login: "${login}") {
+    repositories(first: ${PER_PAGE}, after: $cursor,
+      orderBy: { field: UPDATED_AT, direction: DESC }) {
+      ${REPO_FIELDS}
     }
   }
 }`;
 
-const gql = async (cursor) => {
+const gql = async (query, cursor) => {
   const res = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
@@ -60,42 +74,42 @@ const gql = async (cursor) => {
       "Content-Type": "application/json",
       "User-Agent": "svasenkov-profile-stats",
     },
-    body: JSON.stringify({ query: QUERY, variables: { cursor } }),
+    body: JSON.stringify({ query, variables: { cursor } }),
   });
   if (!res.ok) throw new Error(`GraphQL HTTP ${res.status}`);
   const json = await res.json();
   if (json.errors?.length) throw new Error(`GraphQL: ${json.errors[0].message}`);
-  return json.data.user.repositories;
+  const root = json.data.user ?? json.data.organization;
+  return root?.repositories;
 };
 
 const langs = {};
 const keptByOwner = {};
-let kept = 0;
-let scanned = 0;
-let cursor = null;
-for (let page = 0; page < MAX_PAGES && kept < MAX_REPOS; page++) {
-  const data = await gql(cursor);
-  scanned += data.nodes.length;
-  for (const repo of data.nodes) {
-    if (!repo || !OWNER_ALLOWLIST.has(repo.owner?.login)) continue;
-    kept++;
-    keptByOwner[repo.owner.login] = (keptByOwner[repo.owner.login] ?? 0) + 1;
-    for (const edge of repo.languages?.edges ?? []) {
-      const cur = langs[edge.node.name];
-      langs[edge.node.name] = {
-        name: edge.node.name,
-        color: edge.node.color,
-        size: (cur?.size ?? 0) + edge.size,
-        count: (cur?.count ?? 0) + 1,
-      };
+for (const owner of OWNERS) {
+  const query = queryFor(owner);
+  let cursor = null;
+  for (let page = 0; page < MAX_PAGES_PER_OWNER; page++) {
+    const data = await gql(query, cursor);
+    if (!data) break;
+    for (const repo of data.nodes) {
+      if (!repo || repo.isFork || (keptByOwner[owner.login] ?? 0) >= owner.max) continue;
+      keptByOwner[owner.login] = (keptByOwner[owner.login] ?? 0) + 1;
+      for (const edge of repo.languages?.edges ?? []) {
+        const cur = langs[edge.node.name];
+        langs[edge.node.name] = {
+          name: edge.node.name,
+          color: edge.node.color,
+          size: (cur?.size ?? 0) + edge.size,
+          count: (cur?.count ?? 0) + 1,
+        };
+      }
     }
-    if (kept >= MAX_REPOS) break;
+    if (!data.pageInfo.hasNextPage || (keptByOwner[owner.login] ?? 0) >= owner.max) break;
+    cursor = data.pageInfo.endCursor;
   }
-  if (!data.pageInfo.hasNextPage) break;
-  cursor = data.pageInfo.endCursor;
 }
 console.log(
-  `scanned: ${scanned}, repos kept: ${kept} ${JSON.stringify(keptByOwner)}, languages: ${Object.keys(langs).length}`,
+  `repos kept: ${JSON.stringify(keptByOwner)}, languages: ${Object.keys(langs).length}`,
 );
 
 const topLangs = Object.fromEntries(
