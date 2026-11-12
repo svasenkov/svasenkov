@@ -31,6 +31,8 @@ const CARD_OPTIONS = {
   theme: "transparent",
   hide_border: true,
 };
+// Drop tail languages below this share of total bytes.
+const MIN_SHARE_PCT = 0.3;
 
 const token = process.env.GITHUB_TOKEN || process.env.PAT_1;
 if (!token) {
@@ -113,8 +115,11 @@ console.log(
   `repos kept: ${JSON.stringify(keptByOwner)}, languages: ${Object.keys(langs).length}`,
 );
 
+const totalSize = Object.values(langs).reduce((acc, l) => acc + l.size, 0);
 const topLangs = Object.fromEntries(
-  Object.entries(langs).sort(([, a], [, b]) => b.size - a.size),
+  Object.entries(langs)
+    .sort(([, a], [, b]) => b.size - a.size)
+    .filter(([, l]) => (l.size / totalSize) * 100 >= MIN_SHARE_PCT),
 );
 
 const coreDir = process.env.GRS_CORE_DIR || "node_modules";
@@ -128,8 +133,8 @@ const cardPath = path.resolve(
 // get 20 rows. Pinned core, so the constant text is stable.
 const cardSrc = await readFile(cardPath, "utf8");
 const patchedSrc = cardSrc.replace(
-  "MAXIMUM_LANGS_COUNT = 20",
-  "MAXIMUM_LANGS_COUNT = 40",
+  /MAXIMUM_LANGS_COUNT = \d+/,
+  `MAXIMUM_LANGS_COUNT = ${CARD_OPTIONS.langs_count}`,
 );
 if (patchedSrc === cardSrc) {
   console.warn("MAXIMUM_LANGS_COUNT not found — output stays capped at 20");
